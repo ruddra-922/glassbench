@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlassBench — Smart Glasses & XR Benchmark (2026)</title>
+  <meta name="description" content="The global smart glasses and XR benchmark database. Compare Ray-Ban Meta, Apple Vision Pro, XREAL, and more on weight, FOV, display tech, and AI.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "var(--primary)",
+            secondary: "var(--bg-secondary)",
+            tertiary: "var(--bg-tertiary)",
+            paper: "var(--paper)",
+            rule: "var(--rule)",
+            foreground: "var(--foreground)",
+            "muted-foreground": "var(--muted-foreground)"
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="index.css?v=1.0.5">
+  <style>
+    /* Section visibility utilities */
+    .hidden {
+      display: none !important;
+    }
+    .dashboard-section {
+      width: 100%;
+    }
+    
+    /* Grid system layout definitions */
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Video frame wrapper */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Card Wrapper for Forms */
+    .guide-card {
+      background-color: var(--bg-secondary);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: var(--glass-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 900px;
+      margin: 2rem auto;
+      box-shadow: var(--glass-shadow);
+      position: relative;
+      z-index: 10;
+    }
+    
+    .guide-card h2 {
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 0.5rem;
+      font-size: 1.8rem;
+    }
+
+    .guide-card h3 {
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--foreground);
+    }
+
+    .guide-card p, .guide-card li {
+      color: var(--muted-foreground);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      line-height: 1.7;
+    }
+
+    .guide-card ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .highlight-box {
+      background-color: var(--bg-tertiary);
+      border-left: 4px solid var(--primary);
+      padding: 1rem 1.5rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+    }
+
+    /* Teardown container accordion styling */
+    #teardowns-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+      width: 100%;
+    }
+
+    details.brand-accordion {
+      background-color: var(--bg-secondary);
+      border: var(--glass-border);
+      border-radius: 16px;
+      box-shadow: var(--glass-shadow);
+      transition: var(--transition);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    
+    details.brand-accordion[open] {
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      border-color: var(--primary);
+    }
+    
+    details.brand-accordion summary {
+      padding: 1.25rem 1.5rem;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--foreground);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    
+    details.brand-accordion summary::-webkit-details-marker {
+      display: none;
+    }
+    
+    details.brand-accordion summary::after {
+      content: "+";
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--muted-foreground);
+      transition: transform 0.3s ease;
+    }
+    
+    details.brand-accordion[open] summary::after {
+      content: "-";
+      transform: rotate(180deg);
+    }
+    
+    details.brand-accordion .brand-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      border-top: 1px solid var(--rule);
+    }
+  </style>
+</head>
+<body>
+  <!-- Interactive Cursor Glow -->
+  <div id="cursor-glow"></div>
+
+  <!-- Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo" onclick="document.querySelector('[data-section=\'benchmark\']').click()">
+        <span class="logo-text-left">GlassBench</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#" class="active" data-section="benchmark">Catalog</a></li>
+          <li><a href="#" data-section="newcomers">Prototypes/Projects</a></li>
+          <li><a href="#" data-section="glossary">Glossary</a></li>
+          <li><a href="#" data-section="visionlab">Vision Lab</a></li>
+          <li><a href="#" data-section="unboxing">Unboxings</a></li>
+          <li><a href="#" data-section="teardown">Teardowns</a></li>
+          <li><a href="#" data-section="about">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="kicker">Smart Wearables Portal 2026</p>
+      <h1>GlassBench Platform</h1>
+      <p class="hero-desc">
+        Explore smart glasses, learn XR technologies, compare devices, and contribute to the future of wearable computing.
+      </p>
+    </div>
+  </section>
+
+  <!-- BENCHMARK SECTION -->
+  <div id="benchmark-section" class="dashboard-section dashboard-grid">
+    <!-- Sidebar Filters -->
+    <aside class="filter-sidebar">
+      <div class="filter-section-title">Search & Filters</div>
+      
+      <div class="search-container">
+        <input type="text" id="search-input" class="search-input" placeholder="Search brand or model...">
+      </div>
+
+      <div class="filter-group" style="text-align: right;">
+        <button id="reset-filters" class="reset-btn">Reset Filters</button>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Display Screen</span>
+        <div class="button-group">
+          <button class="btn-pill active" data-filter="display-mode" data-value="all">All</button>
+          <button class="btn-pill" data-filter="display-mode" data-value="with">With Screen</button>
+          <button class="btn-pill" data-filter="display-mode" data-value="without">No Display (Audio/Camera)</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Integrated Camera</span>
+        <div class="button-group">
+          <button class="btn-pill active" data-filter="camera-mode" data-value="all">All</button>
+          <button class="btn-pill" data-filter="camera-mode" data-value="yes">Yes</button>
+          <button class="btn-pill" data-filter="camera-mode" data-value="no">No</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Speakers / Audio</span>
+        <div class="button-group">
+          <button class="btn-pill active" data-filter="audio-mode" data-value="all">All</button>
+          <button class="btn-pill" data-filter="audio-mode" data-value="yes">Yes</button>
+          <button class="btn-pill" data-filter="audio-mode" data-value="no">No</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Display Technology</span>
+        <div class="checkbox-list">
+          <label class="checkbox-item">
+            <input type="checkbox" class="tech-checkbox" value="Micro-OLED">
+            <span>Micro-OLED</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="tech-checkbox" value="Micro-LED">
+            <span>Micro-LED</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="tech-checkbox" value="LCoS">
+            <span>LCoS</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="tech-checkbox" value="Monochrome Waveguide">
+            <span>Monochrome Waveguide</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="tech-checkbox" value="None">
+            <span>No Screen</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Brands</span>
+        <div class="checkbox-list">
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Alibaba">
+            <span>Alibaba</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Amazon">
+            <span>Amazon</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Apple">
+            <span>Apple</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Baidu">
+            <span>Baidu</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Brilliant Labs">
+            <span>Brilliant Labs</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Even Realities">
+            <span>Even Realities</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Google">
+            <span>Google</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="HTC VIVE">
+            <span>HTC VIVE</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Huawei">
+            <span>Huawei</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="INMO">
+            <span>INMO</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Jio">
+            <span>Jio</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Kannan">
+            <span>Kannan</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Latitude 52°N">
+            <span>Latitude 52°N</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="MemoMind">
+            <span>MemoMind</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Mentra">
+            <span>Mentra</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Meta">
+            <span>Meta</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Monako">
+            <span>Monako</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Nimo Planet">
+            <span>Nimo Planet</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Rokid">
+            <span>Rokid</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Samsung">
+            <span>Samsung</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Snap">
+            <span>Snap</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="ThinkAR">
+            <span>ThinkAR</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="TCL RayNeo">
+            <span>TCL RayNeo</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Viture">
+            <span>Viture</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="Xiaomi">
+            <span>Xiaomi</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="brand-checkbox" value="XREAL">
+            <span>XREAL</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Device Type</span>
+        <div class="checkbox-list">
+          <label class="checkbox-item">
+            <input type="checkbox" class="device-type-checkbox" value="AR Glasses">
+            <span>AR Glasses</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="device-type-checkbox" value="XR Headset">
+            <span>XR Headset</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="device-type-checkbox" value="Smart Audio Glasses">
+            <span>Smart Audio Glasses</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="device-type-checkbox" value="Display Glasses">
+            <span>Display Glasses</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="device-type-checkbox" value="Prototype">
+            <span>Prototype</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Availability Status</span>
+        <div class="checkbox-list">
+          <label class="checkbox-item">
+            <input type="checkbox" class="avail-checkbox" value="Available">
+            <span>Available</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="avail-checkbox" value="Preorder">
+            <span>Preorder</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="avail-checkbox" value="Coming Soon">
+            <span>Coming Soon</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="avail-checkbox" value="Prototype">
+            <span>Prototype</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="avail-checkbox" value="Unreleased">
+            <span>Unreleased</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="avail-checkbox" value="Discontinued">
+            <span>Discontinued</span>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <section class="benchmark-card">
+      <div class="benchmark-card-header">
+        <h2 class="font-display" style="font-size: 1.4rem;">Catalog</h2>
+        <span id="product-count" class="product-count">0 models</span>
+      </div>
+
+      <!-- Quick badge bar -->
+      <div class="quick-filter-bar">
+        <span style="font-size: 0.72rem; color: var(--muted-foreground); align-self: center; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; margin-right: 0.5rem;">Quick Filters:</span>
+        <button class="reset-btn" onclick="quickFilter('display')">With Screen</button>
+        <button class="reset-btn" onclick="quickFilter('micro-oled')">Micro-OLED</button>
+        <button class="reset-btn" onclick="quickFilter('micro-led')">Micro-LED</button>
+        <button class="reset-btn" onclick="quickFilter('audio')">Audio-Only</button>
+      </div>
+
+      <!-- Comparison Matrix Table -->
+      <div class="table-responsive">
+        <table class="benchmark-table">
+          <thead>
+            <tr>
+              <th style="width: 40px;"></th>
+              <th>Brand</th>
+              <th>Model</th>
+              <th class="text-right">Price</th>
+              <th class="text-right">Weight</th>
+              <th>FOV</th>
+              <th class="text-center">Display Tech</th>
+              <th class="text-center">Camera</th>
+              <th class="text-center">Audio</th>
+              <th>Availability</th>
+            </tr>
+          </thead>
+          <tbody id="benchmark-table-body">
+            <!-- Rendered by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- PROTOTYPES/PROJECTS SECTION -->
+  <div id="newcomers-section" class="dashboard-section hidden" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <h2 class="font-display" style="font-size: 1.6rem; margin-bottom: 0.5rem; text-align: center;">Prototypes & Projects</h2>
+    <p style="color: var(--muted-foreground); text-align: center; margin-bottom: 2rem;">Explore the unreleased, rumored, and concept smart glasses defining the future of spatial computing.</p>
+    <div id="newcomers-grid" class="section-grid">
+      <!-- Populated dynamically by app.js -->
+    </div>
+  </div>
+
+  <!-- GLOSSARY SECTION -->
+  <div id="glossary-section" class="dashboard-section hidden" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <h2 class="font-display" style="font-size: 1.6rem; margin-bottom: 0.5rem; text-align: center;">Technical Glossary</h2>
+    <p style="color: var(--muted-foreground); text-align: center; margin-bottom: 1.5rem;">Understanding optical waveguides, spatial compute terminology, and display hardware specs.</p>
+    <div style="text-align: center; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+      <span style="color: var(--muted-foreground); font-size: 1rem; font-weight: 500;">That's not it -</span>
+      <button onclick="document.getElementById('glossary-suggest-form').scrollIntoView({ behavior: 'smooth' })" class="suggest-scroll-btn">Add more</button>
+    </div>
+    <div id="glossary-grid" class="section-grid">
+      <!-- Populated dynamically -->
+    </div>
+
+    <!-- Suggest a Word Form -->
+    <div class="guide-card" style="margin-top: 3.5rem; padding: 2.5rem; max-width: 800px; z-index: 10;">
+      <h3 style="margin-top: 0; font-size: 1.4rem; color: var(--primary);" class="font-display">Suggest a Missing Technical Term</h3>
+      <p style="color: var(--muted-foreground); font-size: 0.9rem; margin-bottom: 1.5rem;">Help us expand our glossary. If you notice a term missing, submit it below with its definition. If verified, we'll add it in our next update, and we'll send a confirmation email back to you.</p>
+      
+      <form id="glossary-suggest-form" class="space-y-4" style="position: relative;">
+        <!-- Form Overlay for Success/Loading State -->
+        <div id="form-status-overlay" class="hidden absolute inset-0 bg-secondary/90 backdrop-blur-md flex flex-col items-center justify-center text-center rounded-xl p-6 z-20">
+          <div id="form-spinner" class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <h4 id="form-status-title" class="font-display text-lg font-bold text-foreground mb-2">Sending suggestion...</h4>
+          <p id="form-status-desc" class="text-xs text-muted-foreground max-w-sm">Please wait while your contribution is logged and confirmation email is sent.</p>
+          <button id="form-reset-btn" type="button" class="reset-btn mt-4 hidden" onclick="resetSuggestForm()">Submit Another Term</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+          <div class="flex flex-col gap-1.5">
+            <label for="suggest-term" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Term / Word</label>
+            <input type="text" id="suggest-term" required placeholder="e.g. Chromatic Dispersion" style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="suggest-name" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Your Name</label>
+            <input type="text" id="suggest-name" required placeholder="e.g. Ruddraksh" style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="suggest-email" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Your Gmail Address</label>
+          <input type="email" id="suggest-email" required placeholder="e.g. user@gmail.com" style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="suggest-definition" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Definition</label>
+          <textarea id="suggest-definition" required rows="4" placeholder="Explain the technical meaning of this term..." style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s; resize: vertical;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'"></textarea>
+        </div>
+
+        <div style="text-align: right; margin-top: 1rem;">
+          <button type="submit" class="compare-action-btn" style="padding: 0.75rem 2rem; font-size: 0.9rem; border-radius: 8px; border: none; cursor: pointer;">Submit Contribution</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- COMMUNITY VISION LAB SECTION -->
+  <div id="visionlab-section" class="dashboard-section hidden" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+    <h2 class="font-display" style="font-size: 1.6rem; margin-bottom: 0.5rem; text-align: center;">Community Vision Lab</h2>
+    <p style="color: var(--muted-foreground); text-align: center; margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto; font-size: 0.95rem;">
+      Help shape the future of smart glasses and spatial computing. Share your ideas, frustrations, and vision for the next generation of wearable technology.
+    </p>
+
+    <div class="guide-card" style="padding: 2.5rem; position: relative;">
+      <h3 style="margin-top: 0; font-size: 1.3rem; color: var(--primary);" class="font-display">Submit Your Spatial Computing Insights</h3>
+      <p style="color: var(--muted-foreground); font-size: 0.88rem; margin-bottom: 2rem;">
+        Your input will help build a community-driven database of hardware requirements, user pain points, and target demographic requests.
+      </p>
+
+      <form id="community-vision-form" class="space-y-5" style="position: relative;">
+        <!-- Form Overlay for Success/Loading State -->
+        <div id="vision-status-overlay" class="hidden absolute inset-0 bg-secondary/95 backdrop-blur-md flex flex-col items-center justify-center text-center rounded-xl p-6 z-20">
+          <div id="vision-spinner" class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <h4 id="vision-status-title" class="font-display text-lg font-bold text-foreground mb-2">Submitting insights...</h4>
+          <p id="vision-status-desc" class="text-xs text-muted-foreground max-w-sm">Sending your data to our community database and generating your thank-you email.</p>
+          <button id="vision-reset-btn" type="button" class="reset-btn mt-5 hidden" onclick="resetVisionLabForm()">Submit Another Response</button>
+        </div>
+
+        <!-- Demographics Info Group -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
+          <div class="flex flex-col gap-1.5">
+            <label for="vision-name" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Full Name (Optional)</label>
+            <input type="text" id="vision-name" placeholder="e.g. Yash" style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="vision-email" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Gmail Address <span class="text-primary">*</span></label>
+            <input type="email" id="vision-email" required placeholder="e.g. user@gmail.com" style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
+          <div class="flex flex-col gap-1.5">
+            <label for="vision-role" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Occupation / Role <span class="text-primary">*</span></label>
+            <select id="vision-role" required style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s; cursor: pointer;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+              <option value="" disabled selected>Select your current occupation...</option>
+              <option value="Student">Student</option>
+              <option value="Researcher">Researcher</option>
+              <option value="Software Engineer">Software Engineer</option>
+              <option value="Hardware Engineer">Hardware Engineer</option>
+              <option value="Product Designer">Product Designer</option>
+              <option value="XR Developer">XR Developer</option>
+              <option value="Entrepreneur / Founder">Entrepreneur / Founder</option>
+              <option value="Educator">Educator</option>
+              <option value="Healthcare Professional">Healthcare Professional</option>
+              <option value="Enterprise Professional">Enterprise Professional</option>
+              <option value="Content Creator">Content Creator</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="vision-experience" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">XR Experience Level <span class="text-primary">*</span></label>
+            <select id="vision-experience" required style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s; cursor: pointer;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+              <option value="" disabled selected>Select your familiarity with XR...</option>
+              <option value="Never used smart glasses">Never used smart glasses</option>
+              <option value="Interested but never tried">Interested but never tried</option>
+              <option value="Tried smart glasses briefly">Tried smart glasses briefly</option>
+              <option value="Own smart glasses">Own smart glasses</option>
+              <option value="Develop XR applications">Develop XR applications</option>
+              <option value="Work in the XR industry">Work in the XR industry</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Conditional specify text box -->
+        <div id="role-specify-container" class="hidden flex flex-col gap-1.5 transition-all duration-300">
+          <label for="vision-role-specify" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Please specify your role <span class="text-primary">*</span></label>
+          <input type="text" id="vision-role-specify" placeholder="Describe your field or occupation..." style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'">
+        </div>
+
+        <!-- Multi-select Checklist for used devices -->
+        <div class="flex flex-col gap-2">
+          <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Which devices have you used? (Select all that apply)</span>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem; padding-top: 0.25rem;">
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Meta Ray-Ban">
+              <span style="font-size: 0.8rem;">Meta Ray-Ban</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="XREAL">
+              <span style="font-size: 0.8rem;">XREAL</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Rokid">
+              <span style="font-size: 0.8rem;">Rokid</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Viture">
+              <span style="font-size: 0.8rem;">Viture</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="RayNeo">
+              <span style="font-size: 0.8rem;">RayNeo</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Even Realities">
+              <span style="font-size: 0.8rem;">Even Realities</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Apple Vision Pro">
+              <span style="font-size: 0.8rem;">Apple Vision Pro</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Microsoft HoloLens">
+              <span style="font-size: 0.8rem;">HoloLens</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Other">
+              <span style="font-size: 0.8rem;">Other</span>
+            </label>
+            <label class="checkbox-item" style="border: var(--glass-border); padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; background: var(--bg-tertiary);">
+              <input type="checkbox" class="vision-device-checkbox w-4 h-4 accent-primary" value="Never used any">
+              <span style="font-size: 0.8rem;">Never used any</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Long Text Insight Areas -->
+        <div class="flex flex-col gap-1.5">
+          <label for="vision-dream" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Dream Feature <span class="text-primary">*</span></label>
+          <textarea id="vision-dream" required rows="4" placeholder="If you were designing the next generation of smart glasses, what feature would you add and why?" style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s; resize: vertical;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="vision-frustration" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted-foreground);">Biggest Frustration <span class="text-primary">*</span></label>
+          <textarea id="vision-frustration" required rows="4" placeholder="What is the biggest problem with current smart glasses or XR devices?" style="background: var(--bg-tertiary); border: var(--glass-border); padding: 0.75rem 1rem; border-radius: 8px; color: var(--foreground); font-size: 0.9rem; outline: none; transition: border-color 0.2s; resize: vertical;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--rule)'"></textarea>
+        </div>
+
+        <div style="text-align: right; margin-top: 1.5rem;">
+          <button type="submit" class="compare-action-btn" style="padding: 0.75rem 2.5rem; font-size: 0.9rem; border-radius: 8px; border: none; cursor: pointer;">Submit Insights</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- UNBOXINGS SECTION -->
+  <div id="unboxing-section" class="dashboard-section hidden" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <h2 class="font-display" style="font-size: 1.6rem; margin-bottom: 0.5rem; text-align: center;">Global Unboxings & First Looks</h2>
+    <p style="color: var(--muted-foreground); text-align: center; margin-bottom: 2rem;">Curated reviews and hardware unboxings from leading global tech channels.</p>
+    <div id="unboxings-container" class="video-grid">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+
+  <!-- TEARDOWNS SECTION -->
+  <div id="teardown-section" class="dashboard-section hidden" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <h2 class="font-display" style="font-size: 1.6rem; margin-bottom: 0.5rem; text-align: center;">Hardware Teardowns</h2>
+    <p style="color: var(--muted-foreground); text-align: center; margin-bottom: 2rem;">Internal component architecture analysis, battery locations, lens insert options, and repairability indices.</p>
+    <div id="teardowns-container">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+
+  <!-- ABOUT SECTION -->
+  <div id="about-section" class="dashboard-section hidden" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+    <div class="guide-card">
+      <h2 class="font-display">About GlassBench</h2>
+      <p>
+        GlassBench is a community-driven platform dedicated to smart glasses, XR technologies, spatial computing, and wearable intelligence.
+      </p>
+      <p>
+        The platform brings together product comparisons, technical glossaries, hardware teardowns, unboxing resources, and community contributions to make emerging technologies easier to explore and understand.
+      </p>
+      <p>
+        Whether you're discovering your first pair of smart glasses, learning how waveguides work, comparing devices, or exploring the technology behind modern XR systems, GlassBench aims to provide a clear and accessible place to learn.
+      </p>
+      <p>
+        Built by an enthusiast passionate about the future of computing, GlassBench exists to help create a more informed community around the technologies shaping the next generation of human-computer interaction.
+      </p>
+
+      <h3 class="font-display">Feedback &amp; Suggestions</h3>
+      <p>
+        Found incorrect information, a bug, or have an idea to improve GlassBench?
+      </p>
+      <p>
+        Contact: <a href="mailto:glassbenchquery@gmail.com" style="color: var(--primary); font-weight: 700; text-decoration: underline;">glassbenchquery@gmail.com</a>
+      </p>
+      <p>
+        Community feedback helps GlassBench grow and improve.
+      </p>
+    </div>
+  </div>
+
+
+
+  <!-- Floating Sticky Bottom Compare Drawer -->
+  <div id="compare-drawer" class="compare-drawer translate-y-full">
+    <div class="compare-items-container">
+      <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">COMPARE (Max. 3):</span>
+      <div id="compare-items-list" style="display: flex; gap: 0.75rem;">
+        <!-- Compare cards rendered here -->
+      </div>
+    </div>
+    <button id="compare-btn" class="compare-action-btn" disabled>Compare Now</button>
+  </div>
+
+  <!-- Detailed Compare Modal overlay -->
+  <div id="compare-modal" class="compare-modal">
+    <div class="compare-modal-content">
+      <button class="modal-close-btn" onclick="closeCompareModal()">✕</button>
+      <h2 class="font-display" style="font-size: 1.8rem; margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Detailed Specification Matrix
+      </h2>
+      <div id="compare-modal-body" style="overflow-x: auto;">
+        <!-- Comparative table columns populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline Helper scripts to link quick filters -->
+  <script>
+    function quickFilter(type) {
+      const displayButtons = document.querySelectorAll("[data-filter='display-mode']");
+      const techCheckboxes = document.querySelectorAll(".tech-checkbox");
+      const audioButtons = document.querySelectorAll("[data-filter='audio-mode']");
+      const availCheckboxes = document.querySelectorAll(".avail-checkbox");
+
+      // Reset
+      document.getElementById("reset-filters").click();
+
+      if (type === 'display') {
+        const btn = document.querySelector("[data-filter='display-mode'][data-value='with']");
+        if (btn) btn.click();
+      } else if (type === 'micro-oled') {
+        const cb = Array.from(techCheckboxes).find(c => c.value === 'Micro-OLED');
+        if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); }
+      } else if (type === 'micro-led') {
+        const cb = Array.from(techCheckboxes).find(c => c.value === 'Micro-LED');
+        if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); }
+      } else if (type === 'audio') {
+        const btn = document.querySelector("[data-filter='display-mode'][data-value='without']");
+        if (btn) btn.click();
+        const audBtn = document.querySelector("[data-filter='audio-mode'][data-value='yes']");
+        if (audBtn) audBtn.click();
+
+      }
+    }
+  </script>
+
+  <!-- Application Logic -->
+  <script src="app.js?v=1.0.5"></script>
+</body>
+</html>
