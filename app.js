@@ -2023,6 +2023,17 @@ const teardownData = [
     "link": "https://youtu.be/foBjR3_J1xE"
   },
   {
+    "model": "Saphlux S1 RDK",
+    "brand": "Saphlux",
+    "type": "video",
+    "source": "YouTube Teardown",
+    "author": "Display Training Center",
+    "youtubeId": "t-P2VMHgt9o",
+    "repairability": "N/A",
+    "details": "Saphlux S1 RDK teardown and display module analysis focused on monochrome green microLED panels.",
+    "link": "https://youtu.be/t-P2VMHgt9o"
+  },
+  {
     "model": "Rokid Glasses",
     "brand": "Rokid",
     "type": "video",
