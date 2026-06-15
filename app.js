@@ -1064,7 +1064,27 @@ const smartGlassesData = [
     "deviceType": "Display Glasses",
     "isNewcomer": false,
     "link": "https://www.rayneo.com/products/rayneo-air-2-xr-glasses"
+  },
+  {
+    "id": "steam-frame",
+    "brand": "Valve",
+    "name": "Steam Frame",
+    "price": "TBA",
+    "weight": 440,
+    "fov": "TBA",
+    "battery": "21.6 Wh (runtime TBA)",
+    "displayType": "Dual LCD (2160 x 2160 per eye)",
+    "hasDisplay": true,
+    "hasCamera": true,
+    "hasAudio": true,
+    "displayTech": "LCD",
+    "aiAssistant": "None / SteamOS",
+    "availability": "Coming Soon",
+    "deviceType": "XR Headset",
+    "isNewcomer": false,
+    "link": "https://store.steampowered.com/hardware/steamframe"
   }
+
 ];
 
 const glossaryData = [
