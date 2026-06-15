@@ -1,5 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/knowledge/:slug",
+      "destination": "/api/page?type=knowledge&slug=:slug"
+    },
+    {
+      "source": "/devices/:slug",
+      "destination": "/api/page?type=device&slug=:slug"
+    },
+    {
+      "source": "/compare/:slug",
+      "destination": "/api/page?type=compare&slug=:slug"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
